@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const userSchema = new mongoose.Schema({
     firstName: {
@@ -28,7 +30,7 @@ const userSchema = new mongoose.Schema({
         validate: {
             validator: (v) => validator.isEmail(v), // Checks for valid email format
             message: 'Please provide a valid email address'
-          },
+        },
         trim: true,
         lowercase: true
     },
@@ -38,14 +40,14 @@ const userSchema = new mongoose.Schema({
         minlength: [6, 'Password must be at least 6 characters long'],
         validate: {
             validator: (v) => validator.isStrongPassword(v, {
-              minLength: 6,
-              minLowercase: 1,
-              minUppercase: 1,
-              minNumbers: 1,
-              minSymbols: 1,
+                minLength: 6,
+                minLowercase: 1,
+                minUppercase: 1,
+                minNumbers: 1,
+                minSymbols: 1,
             }),
             message: 'Password must be strong (include uppercase, lowercase, number, and symbol)'
-          }
+        }
     },
     age: {
         type: Number,
@@ -54,7 +56,7 @@ const userSchema = new mongoose.Schema({
         validate: {
             validator: (v) => validator.isInt(String(v), { min: 18, max: 100 }), // Ensures age is an integer within range
             message: 'Please provide a valid age between 18 and 100'
-          }
+        }
 
     },
     gender: {
@@ -66,7 +68,7 @@ const userSchema = new mongoose.Schema({
         validate: {
             validator: (v) => validator.isURL(v), // Ensures valid URL format
             message: 'Photo URL must be a valid URL'
-          },
+        },
         default: "https://www.pngitem.com/pimgs/m/150-1503945_transparent-user-png-default-user-image-png-png.png"
     },
     about: {
@@ -146,6 +148,24 @@ userSchema.pre(['findOneAndUpdate', 'findByIdAndUpdate', 'updateOne'], function 
 
     next();
 });
+
+userSchema.methods.validatePassword = async function (inputPassword) {
+    const user = this;
+
+    const hashPassword = user.password;
+
+    const validatedPassword = await bcrypt.compare(inputPassword, hashPassword);
+
+    return validatedPassword;
+}
+
+userSchema.methods.getJWT = async function () {
+    const user = this;
+
+    const token = await jwt.sign({ _id: user._id }, 'secret', { expiresIn: '1h' });
+
+    return token;
+}
 
 
 module.exports = mongoose.model('User', userSchema);

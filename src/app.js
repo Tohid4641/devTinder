@@ -3,11 +3,15 @@ const connectDB = require('./configs/database');
 const User = require('./models/user');
 const validators = require('./utils/validators');
 const bcrypt = require('bcrypt');
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
+const { userAuth } = require('./middlewares/auth');
 
 const app = express();
 const port = 7777;
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.post('/signup', async (req, res, next) => {
     try {
@@ -37,11 +41,37 @@ app.post('/login', async (req, res, next) => {
 
         if(!user) throw new Error("Invalid credentials");
 
-        const isPasswordValid = await bcrypt.compare(password, user.password);
+        const isPasswordValid = await user.validatePassword(password);
 
         if(!isPasswordValid) throw new Error("Invalid credentials");
 
+        const token = await user.getJWT();
+
+        res.cookie('token', token);
+
         res.status(200).send("login successfull!");
+    } catch (error) {
+        next(error)
+    }
+});
+
+app.get('/user/profile',userAuth, async (req, res, next) => {
+    const user = req.user;
+
+    try {
+        
+        res.status(200).send(user);
+    } catch (error) {
+        next(error)
+    }
+});
+
+app.post('/user/send-connection-req',userAuth, async (req, res, next) => {
+    const user = req.user;
+
+    try {
+        
+        res.status(200).send(user.firstName +' '+ user.lastName + ' is sent you a connection request!');
     } catch (error) {
         next(error)
     }
