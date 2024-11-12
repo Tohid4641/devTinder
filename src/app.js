@@ -1,23 +1,53 @@
 const express = require('express');
 const connectDB = require('./configs/database');
 const User = require('./models/user');
+const validators = require('./utils/validators');
+const bcrypt = require('bcrypt');
 
 const app = express();
 const port = 7777;
 
 app.use(express.json());
 
-app.post('/signup', async (req, res) => {
+app.post('/signup', async (req, res, next) => {
     try {
-        const user = new User(req.body);
+        validators.signupValidator(req.body);
+
+        const hashPassword = await bcrypt.hash(req.body.password, 10);
+
+        const user = new User({
+            ...req.body,
+            password: hashPassword
+        });
+
         await user.save();
-        res.status(200).send("signup successfull!");
+        res.status(201).send("signup successfull!");
     } catch (error) {
-        res.status(error.statusCode || 500).json(error.message)
+        next(error)
     }
 });
 
-app.get('/user', async (req, res) => {
+app.post('/login', async (req, res, next) => {
+    try {
+        validators.loginValidator(req.body);
+
+        const { emailId, password } = req.body;
+
+        const user = await User.findOne({emailId});
+
+        if(!user) throw new Error("Invalid credentials");
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if(!isPasswordValid) throw new Error("Invalid credentials");
+
+        res.status(200).send("login successfull!");
+    } catch (error) {
+        next(error)
+    }
+});
+
+app.get('/user', async (req, res, next) => {
     try {
         const user = await User.findOne({ emailId: req.body.emailId });
         if (!user) {
@@ -25,7 +55,7 @@ app.get('/user', async (req, res) => {
         }
         res.status(200).send(user);
     } catch (error) {
-        res.status(error.statusCode || 500).send(error.message)
+        next(error)
     }
 });
 
@@ -52,12 +82,16 @@ app.delete('/user', async (req, res) => {
 
 })
 
-app.patch('/user', async (req, res) => {
-    const userId = req.body.userId;
+app.patch('/user/:userId', async (req, res) => {
+    const userId = req.params?.userId;
     const newData = req.body
 
     try {
-        await User.findByIdAndUpdate({ _id: userId }, newData);
+        await User.findByIdAndUpdate({ _id: userId }, newData,
+            {
+                runValidators:true
+            }
+        );
         res.status(200).send("user updated successfully");
     } catch (error) {
         res.status(error.statusCode || 500).send(error.message)
@@ -65,6 +99,28 @@ app.patch('/user', async (req, res) => {
 
 })
 
+// Middleware to handle Mongoose validation errors
+app.use((err, req, res, next) => {
+
+    if (err.name === 'ValidationError') {
+      const errors = Object.keys(err.errors).reduce((acc, field) => {
+        acc[field] = err.errors[field].message;
+        return acc;
+      }, {});
+      return res.status(400).json({ message: 'Validation failed', errors });
+    }
+  
+    if (err.code === 11000) {
+      // Handle unique constraint errors, like duplicate email
+      const field = Object.keys(err.keyPattern)[0];
+      return res.status(400).json({ message: `Duplicate value for ${field}.` });
+    }
+  
+    return res.status(err.statusCode || 500).json({
+        message: err.message || 'Somthing Went Wrong!'
+    })
+  });
+  
 
 connectDB()
     .then(() => {
