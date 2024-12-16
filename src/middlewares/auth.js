@@ -1,5 +1,7 @@
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
+const AppError = require('../utils/appError');
+const { errorResponse } = require('../utils/responseHandler');
 
 const adminAuth = (req, res, next) => {
     const token = 'xyz';
@@ -17,24 +19,28 @@ const userAuth = async (req, res, next) => {
     const { token } = req.cookies;
 
     try {
-        if (!token) throw new Error('Unauthorized user!!');
+        if (!token) throw new AppError('Unauthorized user!!', 401);
 
         const decodeData = await jwt.verify(token, 'secret');
 
-        if (!decodeData) throw new Error('Unauthorized user!!');
+        if (!decodeData) throw new AppError('Unauthorized user!!', 401);
 
         const { _id } = decodeData;
 
         const user = await User.findById(_id);
 
-        if (!user) throw new Error('User not found!');
+        if (!user) throw new AppError('User not found!', 404);
 
         req.user = user;
 
         next();
 
     } catch (error) {
-        next(error);
+        console.error(error.message);
+        return res.status(401).json({
+            success: false,
+            message: "Unauthorized user!!"
+        })
     }
 }
 

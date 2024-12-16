@@ -128,10 +128,10 @@ userSchema.pre('save', function (next) {
     next();
 });
 
-const allowedFieldsUpdate = ['firstName', 'lastName', 'password', 'age', 'gender', 'photoUrl', 'about', 'skills'];
+const allowedFieldsUpdate = ['firstName', 'lastName', 'age', 'gender', 'photoUrl', 'about', 'skills'];
 
 // Pre-hook for validating fields on updates
-userSchema.pre(['findOneAndUpdate', 'findByIdAndUpdate', 'updateOne'], function (next) {
+userSchema.pre(['findOneAndUpdate', 'findByIdAndUpdate'], function (next) {
 
     const update = this.getUpdate();
 
@@ -139,12 +139,10 @@ userSchema.pre(['findOneAndUpdate', 'findByIdAndUpdate', 'updateOne'], function 
     const topLevelFields = Object.keys(update).filter(key => !key.startsWith('$'));
 
     const updateFields = [...topLevelFields];
-
+    
     const isAllowed = updateFields.every(field => allowedFieldsUpdate.includes(field));
 
-    if (!isAllowed) {
-        return next(new Error('Updating these fields is not allowed.'));
-    }
+    if (!isAllowed) next(new Error('Updating these fields is not allowed.'));
 
     next();
 });
