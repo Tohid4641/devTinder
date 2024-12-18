@@ -2,6 +2,7 @@ const validators = require('../utils/validators');
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
 const { successResponse } = require('../utils/responseHandler');
+const SAFE_USER_DATA_STR = 'firstName lastName age gender photoUrl about skills'
 const AppError = require('../utils/appError');
 
 
@@ -28,13 +29,13 @@ const login = async (req, res, next) => {
     try {
         validators.loginValidator(req.body);
 
-        const { emailId, password } = req.body;
+        const { emailId, password:inputPassword } = req.body;
 
-        const user = await User.findOne({emailId});
+        const user = await User.findOne({emailId}).select(`${SAFE_USER_DATA_STR} password`);
 
         if(!user) throw new AppError("Invalid credentials", 400);
 
-        const isPasswordValid = await user.validatePassword(password);
+        const isPasswordValid = await user.validatePassword(inputPassword);
 
         if(!isPasswordValid) throw new AppError("Invalid credentials", 400);
         
@@ -42,7 +43,7 @@ const login = async (req, res, next) => {
 
         res.cookie('token', token);
 
-        successResponse(res,  "login successfull!!");
+        successResponse(res,  "login successfull!!", 200, user);
     } catch (error) {
         next(error)
     }
