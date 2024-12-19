@@ -21,6 +21,12 @@ app.use(cookieParser());
 app.use(apiLogger);
 
 app.use("/api", router);
+app.use('/*', (req, res)=> {
+    return res.status(404).json({
+        success: false,
+        message: 'Invalid API Call!!',
+    })
+})
 
 app.use(globalErrorHandler);
 
