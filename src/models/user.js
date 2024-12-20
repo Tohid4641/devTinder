@@ -61,7 +61,10 @@ const userSchema = new mongoose.Schema({
     },
     gender: {
         type: String,
-        enum: ['male', 'female', 'other'],
+        enum: {
+            values: ["male", "female", "other"],
+            message: '{VALUE} is not a valid gender type',
+          },
     },
     photoUrl: {
         type: String,
