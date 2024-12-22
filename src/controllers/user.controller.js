@@ -53,7 +53,7 @@ const getConnections = async (req, res, next) => {
 const getFeeds = async (req, res, next) => {
     const user = req.user;
     let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 5;
+    let limit = parseInt(req.query.limit) || 10;
     let skip = (page - 1) * limit;
     limit = limit > 50 ? 50 : limit;
 
