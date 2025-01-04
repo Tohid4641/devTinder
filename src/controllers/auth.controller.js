@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt");
 const { successResponse } = require("../utils/responseHandler");
 const SAFE_USER_DATA_STR =
   "firstName lastName age gender photoUrl about skills";
-const AppError = require("../utils/appError");
+const AppError = require("../utils/AppError");
 
 const signup = async (req, res, next) => {
   try {

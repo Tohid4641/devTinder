@@ -1,6 +1,6 @@
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
-const AppError = require('../utils/appError');
+const AppError = require('../utils/AppError');
 const { errorResponse } = require('../utils/responseHandler');
 
 const adminAuth = (req, res, next) => {
