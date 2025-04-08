@@ -1,5 +1,5 @@
 const { successResponse } = require('../utils/responseHandler');
-const AppError = require('../utils/appError');
+const AppError = require('../utils/AppError');
 const User = require('../models/user');
 
 const getProfile = async (req, res, next) => {

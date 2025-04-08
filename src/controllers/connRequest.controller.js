@@ -1,6 +1,6 @@
 const { successResponse } = require('../utils/responseHandler');
 const validators = require('../utils/validators');
-const AppError = require('../utils/appError');
+const AppError = require('../utils/AppError');
 const User = require('../models/user');
 const ConnRequest = require('../models/connRequest');
 

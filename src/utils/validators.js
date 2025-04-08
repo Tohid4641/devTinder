@@ -1,5 +1,5 @@
 const validator = require('validator');
-const AppError = require('./appError');
+const AppError = require('./AppError');
 
 const signupValidator = (data) => {
     const { firstName, lastName, emailId, password } = data;
