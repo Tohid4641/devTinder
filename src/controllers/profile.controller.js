@@ -14,7 +14,7 @@ const getProfile = async (req, res, next) => {
 const updateProfile = async (req, res, next) => {
     const user = req.user;
     try {
-        const updatedUser = await User.findByIdAndUpdate(user._id, req.body, {returnDocument:'after'});
+        const updatedUser = await User.findByIdAndUpdate(user._id, req.body, {returnDocument:'after', runValidators: true});
 
         const { password, emailId, ...otherData } = updatedUser._doc;
 
