@@ -3,39 +3,40 @@ const validators = require('../utils/validators');
 const AppError = require('../utils/AppError');
 const User = require('../models/user');
 const ConnRequest = require('../models/connRequest');
+const sendEmail = require("../utils/sendEmail");
 
 const getConnRequests = async (req, res, next) => {
     try {
-        
-        if(Object.keys(req.query).length !== 0) validators.getConnRequestsValidator(req.query);
+
+        if (Object.keys(req.query).length !== 0) validators.getConnRequestsValidator(req.query);
 
         const user = req.user;
         const status = req.query.status;
 
-        const allConnections = await( 
+        const allConnections = await (
             status ?
-            ConnRequest.find({
-                $and: [
-                    {fromUserId:user._id},
-                    { status }
-                ]
-            }) : 
+                ConnRequest.find({
+                    $and: [
+                        { fromUserId: user._id },
+                        { status }
+                    ]
+                }) :
 
-            ConnRequest.find({
-                $or:[
-                    {fromUserId:user._id},
-                    {
-                        $and: [
-                            {toUserId:user._id},
-                            { status: "interested" }
-                        ]
-                    },
-        
-                ]
-            })
-        )        
+                ConnRequest.find({
+                    $or: [
+                        { fromUserId: user._id },
+                        {
+                            $and: [
+                                { toUserId: user._id },
+                                { status: "interested" }
+                            ]
+                        },
 
-        if(allConnections.length === 0) throw new AppError("connections not found", 404, []);
+                    ]
+                })
+        )
+
+        if (allConnections.length === 0) throw new AppError("connections not found", 404, []);
 
         successResponse(res, `Your all connections`, 200, allConnections)
     } catch (error) {
@@ -74,6 +75,12 @@ const sendConnRequest = async (req, res, next) => {
 
         await connRequest.save();
 
+        // const emailRes = await sendEmail.run(
+        //   "A new friend request from " + req.user.firstName,
+        //   req.user.firstName + " is " + status + " in " + toUser.firstName
+        // );
+        // console.log(emailRes);
+
         successResponse(res, `${user.firstName} is sent connection request ${status} to ${toUser.firstName}!`, 200, connRequest)
     } catch (error) {
         next(error)
@@ -93,7 +100,7 @@ const acknowlageConnRequest = async (req, res, next) => {
             status: "interested"
         });
 
-        if(!connReq) throw new AppError("Connection request not found", 404, []);
+        if (!connReq) throw new AppError("Connection request not found", 404, []);
 
         connReq.status = status;
 
