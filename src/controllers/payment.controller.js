@@ -51,7 +51,7 @@ const createPaymentOrder = async (req, res, next) => {
 
 const paymentWebhook = async (req, res, next) => {
     try {
-        const webhookSignature = req.get("X-Razorpay-signature");
+        const webhookSignature = req.get("X-Razorpay-Signature");
 
         const isWebhookValid = razorpayInstance.validateWebhookSignature(
             JSON.stringify(req.body),
@@ -74,7 +74,7 @@ const paymentWebhook = async (req, res, next) => {
 
         console.log("Payment updated in DB:", dbPayment);
 
-        const user = await User.findById(dbPayment.userId);
+        const user = await User.findOne({ _id: dbPayment.userId });
 
         user.isPremium = true;
         user.subscriptionType = dbPayment.notes.subscriptionType;
