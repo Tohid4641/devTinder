@@ -10,6 +10,6 @@ router.use('/auth', authRouter);
 router.use('/request', userAuth, connRequestRouter);
 router.use('/profile', userAuth, profileRouter);
 router.use('/user', userAuth, userRouter);
-router.use('/payment', userAuth, paymentRouter);
+router.use('/payment', paymentRouter);
 
 module.exports = router;
