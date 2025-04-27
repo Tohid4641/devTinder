@@ -64,7 +64,7 @@ const userSchema = new mongoose.Schema({
         enum: {
             values: ["male", "female", "other"],
             message: '{VALUE} is not a valid gender type',
-          },
+        },
     },
     photoUrl: {
         type: String,
@@ -79,6 +79,13 @@ const userSchema = new mongoose.Schema({
         minLength: [4, 'About section required 4 minimum characters'],
         maxlength: [200, 'About section cannot exceed 200 characters'],
         default: "This is default about of the user!"
+    },
+    isPremium: {
+        type: Boolean,
+        default: false
+    },
+    subscriptionType: {
+        type: String,
     },
     skills: {
         type: [String],
@@ -142,7 +149,7 @@ userSchema.pre(['findOneAndUpdate', 'findByIdAndUpdate'], function (next) {
     const topLevelFields = Object.keys(update).filter(key => !key.startsWith('$'));
 
     const updateFields = [...topLevelFields];
-    
+
     const isAllowed = updateFields.every(field => allowedFieldsUpdate.includes(field));
 
     if (!isAllowed) next(new Error('Updating these fields is not allowed.'));
