@@ -126,6 +126,10 @@ const allowedFields = ['_id', 'firstName', 'lastName', 'emailId', 'password', 'a
 
 // Pre-hook for validating fields on sign-up (document creation)
 userSchema.pre('save', function (next) {
+
+    if (this.skipFieldValidation) {
+        return next();
+    }
     const newDocumentFields = Object.keys(this.toObject());
 
 
