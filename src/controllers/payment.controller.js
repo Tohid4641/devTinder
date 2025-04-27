@@ -4,6 +4,7 @@ const validators = require('../utils/validators');
 const { successResponse } = require('../utils/responseHandler');
 const Payment = require('../models/payment');
 const User = require('../models/user');
+const { validateWebhookSignature } = require("razorpay/dist/utils/razorpay-utils");
 
 const createPaymentOrder = async (req, res, next) => {
 
@@ -53,7 +54,7 @@ const paymentWebhook = async (req, res, next) => {
     try {
         const webhookSignature = req.get("X-Razorpay-Signature");
 
-        const isWebhookValid = razorpayInstance.validateWebhookSignature(
+        const isWebhookValid = validateWebhookSignature(
             JSON.stringify(req.body),
             webhookSignature,
             process.env.RAZORPAY_WEBHOOK_SECRET
