@@ -80,6 +80,8 @@ const paymentWebhook = async (req, res, next) => {
         user.isPremium = true;
         user.subscriptionType = dbPayment.notes.subscriptionType;
 
+        user.skipFieldValidation = true;
+
         await user.save();
 
         // Update the user as premium
