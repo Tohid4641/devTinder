@@ -1,5 +1,6 @@
 const socket = require('socket.io');
 const crypto = require('node:crypto');
+const Chat = require('../models/chat.js');
 
 const getSecretRoomId = (userId, targetUserId) => {
     return crypto.createHash("sha256").update([userId, targetUserId].sort().join('$')).digest("hex");
@@ -13,7 +14,6 @@ const initializeSocket = (server) => {
     });
 
     io.on("connection", (socket) => {
-        console.log("New client connected", socket.id);
 
         socket.on("joinChat", (data) => {
             const { firstName, userId, targetUserId } = data;
@@ -23,16 +23,39 @@ const initializeSocket = (server) => {
             socket.join(roomId);
 
         });
-        socket.on("sendMessage", (data) => {
+        socket.on("sendMessage", async (data) => {
             const { firstName, userId, targetUserId, message } = data;
-            const roomId = getSecretRoomId(userId, targetUserId)
+            try {
+                const roomId = getSecretRoomId(userId, targetUserId)
 
-            io.to(roomId).emit("receivedMessage", {
-                firstName: firstName,
-                userId,
-                targetUserId,
-                message: message,
-            });
+                // save chat on DB
+                let chat = await Chat.findOne({
+                    participants: { $all: [userId, targetUserId] }
+                });
+
+                if (!chat) {
+                    chat = new Chat({
+                        participants: [userId, targetUserId],
+                        messages: []
+                    })
+                }
+
+                chat.messages.push({
+                    senderId: userId,
+                    message: message
+                });
+                await chat.save()
+
+                io.to(roomId).emit("receivedMessage", {
+                    firstName: firstName,
+                    userId,
+                    targetUserId,
+                    message: message,
+                });
+            } catch (error) {
+                console.error(error.message)
+            }
+
         });
         socket.on("disconnect", () => { });
 
