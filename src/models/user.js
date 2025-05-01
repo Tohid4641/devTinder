@@ -117,6 +117,7 @@ const userSchema = new mongoose.Schema({
         ]
     },
     isOnline: { type: Boolean, default: false },
+    lastSeen: { type: Date, default: Date.now() },
 },
     {
         timestamps: true,
@@ -143,7 +144,7 @@ userSchema.pre('save', function (next) {
     next();
 });
 
-const allowedFieldsUpdate = ['firstName', 'lastName', 'age', 'gender', 'photoUrl', 'about', 'skills', 'isOnline', 'isPremium', 'subscriptionType'];
+const allowedFieldsUpdate = ['firstName', 'lastName', 'age', 'gender', 'photoUrl', 'about', 'skills', 'isOnline', 'isPremium', 'subscriptionType', 'lastSeen'];
 
 // Pre-hook for validating fields on updates
 userSchema.pre(['findOneAndUpdate', 'findByIdAndUpdate'], function (next) {
