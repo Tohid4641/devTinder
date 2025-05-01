@@ -1,6 +1,9 @@
 const socket = require('socket.io');
 const crypto = require('node:crypto');
 const Chat = require('../models/chat.js');
+const jwt = require('jsonwebtoken');
+const User = require('../models/user.js');
+const onlineUsers = new Map(); // Store online users
 
 const getSecretRoomId = (userId, targetUserId) => {
     return crypto.createHash("sha256").update([userId, targetUserId].sort().join('$')).digest("hex");
@@ -13,7 +16,23 @@ const initializeSocket = (server) => {
         },
     });
 
-    io.on("connection", (socket) => {
+    io.use((socket, next) => {
+        const token = socket.handshake.auth.token; // Get the token from the handshake
+        if (!token) return next(new Error('Authentication error'));
+
+        jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+            if (err) return next(new Error('Authentication error'));
+            socket.user = user;
+            next();
+        });
+    });
+
+
+    io.on("connection", async (socket) => {
+        console.log("user connected", socket.user);
+
+        onlineUsers.set(socket.user._id, socket.id);
+        await User.findByIdAndUpdate(socket.user._id, { isOnline: true });
 
         socket.on("joinChat", (data) => {
             const { firstName, userId, targetUserId } = data;
@@ -49,7 +68,6 @@ const initializeSocket = (server) => {
                 io.to(roomId).emit("receivedMessage", {
                     firstName: firstName,
                     userId,
-                    targetUserId,
                     message: message,
                 });
             } catch (error) {
@@ -57,7 +75,10 @@ const initializeSocket = (server) => {
             }
 
         });
-        socket.on("disconnect", () => { });
+        socket.on("disconnect", async() => {
+            console.log("user disconnected", socket.id);
+            await User.findByIdAndUpdate(socket.user._id, { isOnline: false });
+        });
 
 
     })

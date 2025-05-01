@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { validate } = require('./user');
 
 const messageSchema = new mongoose.Schema(
     {
@@ -21,7 +22,13 @@ const chatSchema = new mongoose.Schema(
             {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: "User",
-                required: true
+                required: true,
+                validator: function (v) {
+                    if(!mongoose.Types.ObjectId.isValid(v)) {
+                        throw new Error("Invalid ObjectId format!");
+                    }
+                },
+
             }
         ],
         messages: [messageSchema]

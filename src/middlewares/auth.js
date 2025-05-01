@@ -21,7 +21,7 @@ const userAuth = async (req, res, next) => {
     try {
         if (!token) throw new AppError('Unauthorized user!!', 401);
 
-        const decodeData = await jwt.verify(token, 'secret');
+        const decodeData = await jwt.verify(token, process.env.JWT_SECRET);
 
         if (!decodeData) throw new AppError('Unauthorized user!!', 401);
 

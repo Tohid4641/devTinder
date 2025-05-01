@@ -115,7 +115,8 @@ const userSchema = new mongoose.Schema({
                 message: 'Skills must not contain duplicate entries'
             }
         ]
-    }
+    },
+    isOnline: { type: Boolean, default: false },
 },
     {
         timestamps: true,
@@ -142,7 +143,7 @@ userSchema.pre('save', function (next) {
     next();
 });
 
-const allowedFieldsUpdate = ['firstName', 'lastName', 'age', 'gender', 'photoUrl', 'about', 'skills'];
+const allowedFieldsUpdate = ['firstName', 'lastName', 'age', 'gender', 'photoUrl', 'about', 'skills', 'isOnline', 'isPremium', 'subscriptionType'];
 
 // Pre-hook for validating fields on updates
 userSchema.pre(['findOneAndUpdate', 'findByIdAndUpdate'], function (next) {
@@ -174,7 +175,7 @@ userSchema.methods.validatePassword = async function (inputPassword) {
 userSchema.methods.getJWT = async function () {
     const user = this;
 
-    const token = await jwt.sign({ _id: user._id }, 'secret', { expiresIn: '1h' });
+    const token = await jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
     return token;
 }
