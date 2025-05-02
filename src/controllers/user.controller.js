@@ -1,7 +1,7 @@
 const ConnRequest = require("../models/connRequest");
 const AppError = require("../utils/AppError");
 const { successResponse } = require("../utils/responseHandler");
-const SAFE_USER_DATA_STR = 'firstName lastName age gender photoUrl about skills'
+const SAFE_USER_DATA_STR = 'firstName lastName age gender photoUrl about skills isOnline lastSeen';
 const User = require('../models/user');
 
 const getReceievedConnections = async (req, res, next) => {
