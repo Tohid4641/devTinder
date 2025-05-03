@@ -66,6 +66,8 @@ const initializeSocket = (server) => {
             }
         })();
 
+        socket.broadcast.emit("getOnlineUser", { userId });
+
         // Handle join chat
         socket.on("joinChat", (data) => {
             try {
@@ -117,6 +119,8 @@ const initializeSocket = (server) => {
             } catch (error) {
                 console.error("Error in disconnect handler:", error);
             }
+
+            socket.broadcast.emit("getOfflineUser", { userId });
         });
 
     });
